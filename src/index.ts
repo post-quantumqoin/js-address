@@ -17,7 +17,7 @@ export interface AddressData {
   namespace?: number
 }
 
-export type EthAddress = `0x${string}`
+export type EthAddressString = `0x${string}`
 
 function getLeb128Length(input: Uint8Array): number {
   for (const [index, byte] of input.entries()) if (byte < 128) return index + 1
@@ -51,6 +51,88 @@ const checksumHashLength = 4
 const ethAddressLength = 20
 const ethIdMaskPrefixLength = 12
 const ethIdMaskPrefix = new Uint8Array(ethIdMaskPrefixLength).fill(255, 0, 1)
+
+/**
+ * EthAddress is a fixed-length, 20-byte Ethereum address value object.
+ */
+export class EthAddress {
+  private readonly _bytes: Uint8Array
+
+  constructor(bytes: Uint8Array) {
+    if (bytes.length !== ethAddressLength)
+      throw new Error(
+        'Cannot parse bytes into an EthAddress: incorrect input length'
+      )
+
+    this._bytes = Uint8Array.from(bytes)
+  }
+
+  static fromString(value: string): EthAddress {
+    if (!/^0x[0-9a-fA-F]{40}$/.test(value))
+      throw new Error('Cannot parse string into an EthAddress')
+    return new EthAddress(ethers.getBytes(value))
+  }
+
+  static fromJSON(value: string): EthAddress {
+    const parsed: unknown = JSON.parse(value)
+    if (typeof parsed !== 'string')
+      throw new Error('Cannot parse JSON into an EthAddress')
+    return EthAddress.fromString(parsed)
+  }
+
+  static fromPublicKey(publicKey: Uint8Array): EthAddress {
+    const hash = ethers.getBytes(ethers.keccak256(publicKey))
+    return new EthAddress(hash.slice(hash.length - ethAddressLength))
+  }
+
+  get bytes(): Uint8Array {
+    return Uint8Array.from(this._bytes)
+  }
+
+  toString(): EthAddressString {
+    return `0x${uint8arrays.toString(this._bytes, 'hex')}`
+  }
+
+  toJSON(): EthAddressString {
+    return this.toString()
+  }
+
+  marshalJSON(): string {
+    return JSON.stringify(this.toString())
+  }
+
+  isMaskedID(): boolean {
+    return uint8arrays.equals(
+      this._bytes.slice(0, ethIdMaskPrefixLength),
+      ethIdMaskPrefix
+    )
+  }
+
+  toFilecoinAddress(coinType: CoinType = defaultCoinType): Address {
+    if (this.isMaskedID()) {
+      const id = new DataView(
+        this._bytes.buffer,
+        this._bytes.byteOffset,
+        this._bytes.byteLength
+      ).getBigUint64(ethIdMaskPrefixLength, false)
+      return newIDAddress(id.toString(), coinType)
+    }
+
+    return newDelegatedAddress(DelegatedNamespace.EVM, this._bytes, coinType)
+  }
+}
+
+export function castEthAddress(bytes: Uint8Array): EthAddress {
+  return new EthAddress(bytes)
+}
+
+export function parseEthAddress(value: string): EthAddress {
+  return EthAddress.fromString(value)
+}
+
+export function ethAddressFromPubKey(publicKey: Uint8Array): EthAddress {
+  return EthAddress.fromPublicKey(publicKey)
+}
 
 function addressHash(ingest: Uint8Array): Uint8Array {
   return blake2b(ingest, undefined, payloadHashLength)
@@ -228,7 +310,7 @@ export function newPqcAddress(
  * newDelegatedEthAddress returns an address for eth using the Delegated protocol.
  */
 export function newDelegatedEthAddress(
-  ethAddr: EthAddress,
+  ethAddr: EthAddressString,
   coinType?: CoinType
 ): Address {
   if (!isEthAddress(ethAddr)) throw new Error('Invalid Ethereum address')
@@ -399,7 +481,7 @@ export function idFromPayload(payload: Uint8Array): number {
  */
 
 export function delegatedFromEthAddress(
-  ethAddr: EthAddress,
+  ethAddr: EthAddressString,
   coinType: CoinType = defaultCoinType
 ): string {
   return newDelegatedEthAddress(ethAddr, coinType).toString()
@@ -409,7 +491,7 @@ export function delegatedFromEthAddress(
  * ethAddressFromDelegated derives the ethereum address from an f410 address
  */
 
-export function ethAddressFromDelegated(delegated: string): EthAddress {
+export function ethAddressFromDelegated(delegated: string): EthAddressString {
   const { namespace, subAddrHex } = decode(delegated)
   if (namespace !== DelegatedNamespace.EVM)
     throw new Error(
@@ -417,7 +499,7 @@ export function ethAddressFromDelegated(delegated: string): EthAddress {
     )
 
   // Add checksum
-  const ethAddress = ethers.getAddress(`0x${subAddrHex}`) as EthAddress
+  const ethAddress = ethers.getAddress(`0x${subAddrHex}`) as EthAddressString
 
   // Prevent returning an ID mask address
   if (isEthIdMaskAddress(ethAddress))
@@ -430,7 +512,7 @@ export function ethAddressFromDelegated(delegated: string): EthAddress {
  * isEthAddress determines whether the input is an Ethereum address
  */
 
-export function isEthAddress(address: string): address is EthAddress {
+export function isEthAddress(address: string): address is EthAddressString {
   return (
     ethers.isHexString(address) &&
     ethers.isAddress(address) &&
@@ -442,7 +524,7 @@ export function isEthAddress(address: string): address is EthAddress {
  * isEthIdMaskAddress determines whether the input is an Ethereum ID mask address
  */
 
-export function isEthIdMaskAddress(ethAddr: EthAddress): boolean {
+export function isEthIdMaskAddress(ethAddr: EthAddressString): boolean {
   if (!isEthAddress(ethAddr)) return false
   const bytes = ethers.getBytes(ethAddr)
   const prefix = bytes.slice(0, ethIdMaskPrefixLength)
@@ -454,7 +536,7 @@ export function isEthIdMaskAddress(ethAddr: EthAddress): boolean {
  */
 
 export function idFromEthAddress(
-  ethAddr: EthAddress,
+  ethAddr: EthAddressString,
   coinType: CoinType = defaultCoinType
 ): string {
   if (!isEthIdMaskAddress(ethAddr))
@@ -469,7 +551,7 @@ export function idFromEthAddress(
  * ethAddressFromID derives the ethereum address from an f0 address
  */
 
-export function ethAddressFromID(idAddress: string): EthAddress {
+export function ethAddressFromID(idAddress: string): EthAddressString {
   const address = decode(idAddress)
   const id = idFromAddress(address)
   const buffer = new ArrayBuffer(ethAddressLength)
@@ -477,11 +559,15 @@ export function ethAddressFromID(idAddress: string): EthAddress {
   dataview.setUint8(0, 255)
   dataview.setBigUint64(ethIdMaskPrefixLength, BigInt(id), false)
   const ethAddress = `0x${uint8arrays.toString(new Uint8Array(buffer), 'hex')}`
-  return ethers.getAddress(ethAddress) as EthAddress // Adds checksum
+  return ethers.getAddress(ethAddress) as EthAddressString // Adds checksum
 }
 
 export default {
   Address,
+  EthAddress,
+  castEthAddress,
+  parseEthAddress,
+  ethAddressFromPubKey,
   newAddress,
   newIDAddress,
   newActorAddress,

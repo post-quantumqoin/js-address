@@ -24,7 +24,11 @@ import {
   ethAddressFromID,
   idFromEthAddress,
   isEthIdMaskAddress,
-  isEthAddress
+  isEthAddress,
+  EthAddress,
+  castEthAddress,
+  parseEthAddress,
+  ethAddressFromPubKey
 } from '../index'
 
 describe('address', () => {
@@ -363,6 +367,51 @@ describe('address', () => {
     const t410fShort = 't410fkkld55ioe7qg24wvt7fu6pbkndgcenb6'
     const t410fLong = 't410fkkld55ioe7qg24wvt7fu6pbknb56ht7pebagbaf3x4ox2'
     const t411f = 't411fkkld55ioe7qg24wvt7fu6pbknb56ht7poxmy4mq'
+
+    describe('EthAddress', () => {
+      test('casts exactly 20 bytes and protects its internal value', () => {
+        const input = Uint8Array.from(Buffer.from(eth.slice(2), 'hex'))
+        const address = castEthAddress(input)
+
+        input[0] = 0
+
+        expect(address.toString()).toBe(eth.toLowerCase())
+        expect(() => castEthAddress(new Uint8Array(19))).toThrow(
+          'incorrect input length'
+        )
+      })
+
+      test('parses strings and JSON', () => {
+        const address = parseEthAddress(eth)
+
+        expect(address).toBeInstanceOf(EthAddress)
+        expect(address.toString()).toBe(eth.toLowerCase())
+        expect(address.marshalJSON()).toBe(JSON.stringify(eth.toLowerCase()))
+        expect(JSON.stringify(address)).toBe(JSON.stringify(eth.toLowerCase()))
+        expect(EthAddress.fromJSON(JSON.stringify(eth)).toString()).toBe(
+          eth.toLowerCase()
+        )
+        expect(() => parseEthAddress('0x01')).toThrow()
+      })
+
+      test('converts regular and masked addresses to Filecoin addresses', () => {
+        const delegated = parseEthAddress(eth).toFilecoinAddress(CoinType.TEST)
+        const masked = parseEthAddress(ethId05088)
+
+        expect(delegated.toString()).toBe(t410f)
+        expect(masked.isMaskedID()).toBe(true)
+        expect(masked.toFilecoinAddress(CoinType.TEST).toString()).toBe(t05088)
+      })
+
+      test('creates an EthAddress from public key bytes', () => {
+        const address = ethAddressFromPubKey(Uint8Array.from([1, 2, 3]))
+
+        expect(address).toBeInstanceOf(EthAddress)
+        expect(address.toString()).toBe(
+          '0x2093220dab15d65381b1157a3633a83bfd5c9239'
+        )
+      })
+    })
 
     test('decode f4 addresses', () => {
       expect(decode(t410f).toString()).toBe(t410f)
