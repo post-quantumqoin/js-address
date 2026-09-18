@@ -1,15 +1,15 @@
-# qcoin-address
+# @post-quantumqoin/js-address
 
-This is a JS implementation of the Qoin address type, adapted from the GLIF Filecoin address package. It can create address instances, encode and decode addresses, and validate address checksums.
+This is a JS implementation of the Post-Quantum Qoin address type, adapted from the GLIF Filecoin address package. It can create address instances, encode and decode addresses, and validate address checksums.
 
 ## Install
 
-`npm i qcoin-address`
+`npm i @post-quantumqoin/js-address`
 
 ## Usage
 
 ```js
-const { newFromString, encode, CoinType } = require('qcoin-address')
+const { newFromString, encode, CoinType } = require('@post-quantumqoin/js-address')
 
 const address = newFromString('t1hvuzpfdycc6z6mjgbiyaiojikd6wk2vwy7muuei')
 const addressProtocol = address.protocol()

@@ -1,7 +1,7 @@
 {
-  "name": "qcoin-address",
+  "name": "@post-quantumqoin/js-address",
   "version": "0.0.1",
-  "description": "The qcoin address type",
+  "description": "The Post-Quantum Qoin address type",
   "main": "./dist/index.js",
   "browser": "./lib/index.js",
   "module": "./module/index.js",
