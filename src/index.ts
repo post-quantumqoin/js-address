@@ -108,7 +108,7 @@ export class EthAddress {
     )
   }
 
-  toFilecoinAddress(coinType: CoinType = defaultCoinType): Address {
+  toQoinAddress(coinType: CoinType = defaultCoinType): Address {
     if (this.isMaskedID()) {
       const id = new DataView(
         this._bytes.buffer,
@@ -195,7 +195,7 @@ export class Address {
   /**
    * toString returns a string representation of this address. If no "coinType"
    * parameter was passed to the constructor the address will be prefixed with
-   * the default coinType prefix "f" (mainnet).
+   * the default coinType prefix "Q" (mainnet).
    */
   toString(): string {
     return encode(this._coinType, this)
@@ -350,7 +350,7 @@ export function encode(coinType: string, address: Address): string {
       )
 
       const bytes = uint8arrays.concat([subAddrBytes, checksumBytes])
-      return `${prefix}${namespace}f${base32.encode(bytes)}`
+      return `${prefix}${namespace}q${base32.encode(bytes)}`
     }
     default: {
       const checksum = getChecksum(address.bytes)
@@ -399,7 +399,7 @@ export function checkAddressString(address: string): AddressData {
     }
 
     case Protocol.DELEGATED: {
-      const splitIndex = raw.indexOf('f')
+      const splitIndex = raw.indexOf('q')
       if (splitIndex === -1) throw new Error('Invalid delegated address')
 
       const namespaceStr = raw.slice(0, splitIndex)

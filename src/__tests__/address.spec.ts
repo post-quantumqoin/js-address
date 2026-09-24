@@ -362,11 +362,11 @@ describe('address', () => {
     const t2 = 't2e467euxin5y6vsmiw4ts3l4cme4zio4cvfx5b5a'
     const t3 =
       't3vvmn62lofvhjd2ugzca6sof2j2ubwok6cj4xxbfzz4yuxfkgobpihhd2thlanmsh3w2ptld2gqkn2jvlss4a'
-    const t410f = 't410fkkld55ioe7qg24wvt7fu6pbknb56ht7pt4zamxa'
-    const t410fIdMask = 't410f74aaaaaaaaaaaaaaaaaaaaaaaaaaaaabvo5mkdi'
-    const t410fShort = 't410fkkld55ioe7qg24wvt7fu6pbkndgcenb6'
-    const t410fLong = 't410fkkld55ioe7qg24wvt7fu6pbknb56ht7pebagbaf3x4ox2'
-    const t411f = 't411fkkld55ioe7qg24wvt7fu6pbknb56ht7poxmy4mq'
+    const t410q = 't410qkkld55ioe7qg24wvt7fu6pbknb56ht7pt4zamxa'
+    const t410qIdMask = 't410q74aaaaaaaaaaaaaaaaaaaaaaaaaaaaabvo5mkdi'
+    const t410qShort = 't410qkkld55ioe7qg24wvt7fu6pbkndgcenb6'
+    const t410qLong = 't410qkkld55ioe7qg24wvt7fu6pbknb56ht7pebagbaf3x4ox2'
+    const t411q = 't411qkkld55ioe7qg24wvt7fu6pbknb56ht7poxmy4mq'
 
     describe('EthAddress', () => {
       test('casts exactly 20 bytes and protects its internal value', () => {
@@ -394,13 +394,13 @@ describe('address', () => {
         expect(() => parseEthAddress('0x01')).toThrow()
       })
 
-      test('converts regular and masked addresses to Filecoin addresses', () => {
-        const delegated = parseEthAddress(eth).toFilecoinAddress(CoinType.TEST)
+      test('converts regular and masked addresses to Qoin addresses', () => {
+        const delegated = parseEthAddress(eth).toQoinAddress(CoinType.TEST)
         const masked = parseEthAddress(ethId05088)
 
-        expect(delegated.toString()).toBe(t410f)
+        expect(delegated.toString()).toBe(t410q)
         expect(masked.isMaskedID()).toBe(true)
-        expect(masked.toFilecoinAddress(CoinType.TEST).toString()).toBe(t05088)
+        expect(masked.toQoinAddress(CoinType.TEST).toString()).toBe(t05088)
       })
 
       test('creates an EthAddress from public key bytes', () => {
@@ -413,12 +413,12 @@ describe('address', () => {
       })
     })
 
-    test('decode f4 addresses', () => {
-      expect(decode(t410f).toString()).toBe(t410f)
+    test('decode delegated addresses', () => {
+      expect(decode(t410q).toString()).toBe(t410q)
     })
 
     test('delegatedFromEthAddress', () => {
-      expect(delegatedFromEthAddress(eth, CoinType.TEST)).toBe(t410f)
+      expect(delegatedFromEthAddress(eth, CoinType.TEST)).toBe(t410q)
       expect(() => delegatedFromEthAddress(ethId01, CoinType.TEST)).toThrow()
     })
 
@@ -428,11 +428,11 @@ describe('address', () => {
       expect(() => ethAddressFromDelegated(t1)).toThrow()
       expect(() => ethAddressFromDelegated(t2)).toThrow()
       expect(() => ethAddressFromDelegated(t3)).toThrow()
-      expect(ethAddressFromDelegated(t410f)).toBe(eth)
-      expect(() => ethAddressFromDelegated(t410fIdMask)).toThrow()
-      expect(() => ethAddressFromDelegated(t410fShort)).toThrow()
-      expect(() => ethAddressFromDelegated(t410fLong)).toThrow()
-      expect(() => ethAddressFromDelegated(t411f)).toThrow()
+      expect(ethAddressFromDelegated(t410q)).toBe(eth)
+      expect(() => ethAddressFromDelegated(t410qIdMask)).toThrow()
+      expect(() => ethAddressFromDelegated(t410qShort)).toThrow()
+      expect(() => ethAddressFromDelegated(t410qLong)).toThrow()
+      expect(() => ethAddressFromDelegated(t411q)).toThrow()
     })
 
     test('isEthAddress', () => {
@@ -446,7 +446,7 @@ describe('address', () => {
       expect(isEthAddress(t1)).toBe(false)
       expect(isEthAddress(t2)).toBe(false)
       expect(isEthAddress(t3)).toBe(false)
-      expect(isEthAddress(t410f)).toBe(false)
+      expect(isEthAddress(t410q)).toBe(false)
     })
 
     test('isEthIdMaskAddress', () => {
@@ -470,15 +470,15 @@ describe('address', () => {
       expect(() => ethAddressFromID(t1)).toThrow()
       expect(() => ethAddressFromID(t2)).toThrow()
       expect(() => ethAddressFromID(t3)).toThrow()
-      expect(() => ethAddressFromID(t410f)).toThrow()
+      expect(() => ethAddressFromID(t410q)).toThrow()
     })
 
-    test('it should validate correct filecoin addresses', () => {
-      expect(validateAddressString(t410f)).toBe(true)
+    test('it should validate correct Qoin addresses', () => {
+      expect(validateAddressString(t410q)).toBe(true)
     })
 
-    test('it should invalidate incorrect filecoin addresses', () => {
-      expect(validateAddressString(t410f.slice(0, -1))).toBe(false)
+    test('it should invalidate incorrect Qoin addresses', () => {
+      expect(validateAddressString(t410q.slice(0, -1))).toBe(false)
     })
   })
 })
