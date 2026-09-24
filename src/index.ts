@@ -108,7 +108,7 @@ export class EthAddress {
     )
   }
 
-  toFilecoinAddress(coinType: CoinType = defaultCoinType): Address {
+  toQoinAddress(coinType: CoinType = defaultCoinType): Address {
     if (this.isMaskedID()) {
       const id = new DataView(
         this._bytes.buffer,

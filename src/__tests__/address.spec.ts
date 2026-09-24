@@ -395,12 +395,12 @@ describe('address', () => {
       })
 
       test('converts regular and masked addresses to Qoin addresses', () => {
-        const delegated = parseEthAddress(eth).toFilecoinAddress(CoinType.TEST)
+        const delegated = parseEthAddress(eth).toQoinAddress(CoinType.TEST)
         const masked = parseEthAddress(ethId05088)
 
         expect(delegated.toString()).toBe(t410q)
         expect(masked.isMaskedID()).toBe(true)
-        expect(masked.toFilecoinAddress(CoinType.TEST).toString()).toBe(t05088)
+        expect(masked.toQoinAddress(CoinType.TEST).toString()).toBe(t05088)
       })
 
       test('creates an EthAddress from public key bytes', () => {
