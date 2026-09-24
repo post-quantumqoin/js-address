@@ -1,6 +1,6 @@
 # @post-quantumqoin/js-address
 
-This is a JS implementation of the Post-Quantum Qoin address type, adapted from the GLIF Filecoin address package. It can create address instances, encode and decode addresses, and validate address checksums.
+This package provides JavaScript and TypeScript utilities for Post-Quantum Qoin addresses. It can create address instances, encode and decode addresses, and validate address checksums.
 
 ## Install
 
